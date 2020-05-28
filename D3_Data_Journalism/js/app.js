@@ -4,8 +4,8 @@ var svgHeight = 500;
 var margin = {
   top: 20,
   right: 40,
-  bottom: 60,
-  left: 100
+  bottom: 80,
+  left: 70
 };
 
 var width = svgWidth - margin.left - margin.right;
@@ -22,20 +22,24 @@ var chartGroup = svg.append("g")
 
 // import data
 
-d3.csv("../data/data.csv").then(function(data) {
-    data.forEach(function(filteredData) {
-        filteredData.smokes;
-        filteredData.age;
-        filteredData.state;
+d3.csv("../data/data.csv").then(function(HealthData) {
+
+    console.log(HealthData);
+    //parse data
+    HealthData.forEach(function(FilteredData) {
+      FilteredData.healthcare = +FilteredData.healthcare;
+      FilteredData.poverty = +FilteredData.poverty;
     });
+    
+    
 
     var xLinearScale = d3.scaleLinear()
-      .domain([20, d3.max(data, d => d.smokes)])
+      .domain([5, d3.max(HealthData, d => d.poverty)])
       .range([0, width]);
 
     var yLinearScale = d3.scaleLinear()
-      .domain([0, d3.max(data, d => d.age)])
-      .range([height, 0]);
+      .domain([0, d3.max(HealthData, d => d.healthcare)])
+      .range([height,0]);
 
     //create axis functions
     var bottomAxis = d3.axisBottom(xLinearScale);
@@ -50,33 +54,36 @@ d3.csv("../data/data.csv").then(function(data) {
       .call(leftAxis)
 
     var circlesGroup = chartGroup.selectAll("circle")
-      .data(filteredData)
+      .data(HealthData)
       .enter()
       .append("circle")
-      .attr("cx", d => xLinearScale(d.smokes))
-      .attr("cy", d => yLinearScale(d.age))
+      .attr("cx", d => xLinearScale(d.poverty))
+      .attr("cy", d => yLinearScale(d.healthcare))
       .attr("r", "15")
-      .attr("fill", "pink")
+      .attr("fill", "blue")
       .attr("opacity", ".5");
 
       //set up tool tip
       var toolTip = d3.tip()
-        .attr("class", "tooltip")
+        .attr("class", "toolTip")
         .offset([80, -60])
-        .html(function (d) {
-          return(`${d.state}<br>Smokes: ${smokes}<br>Age: ${d.age}`);
+        .html(function(d) {
+          return(`${d.state}<br>Poverty: ${d.poverty}%<br>Healthcare: ${d.healthcare}%`);
+        });
 
       //create tooltip in graph
       chartGroup.call(toolTip);
 
+      circlesGroup.call(toolTip);
+
       //event listeners
-      circlesGroup.on("click", function(data) {
-        toolTip.show(data, this);
+      circlesGroup.on("click", function(FilteredData) {
+        toolTip.show(FilteredData, this);
       })
 
       //onmouseout event
       .on("mouseout", function(data, index) {
-        toolTip.hide(data);
+        toolTip.hide(data, index);
       });
 // Create axes labels
     chartGroup.append("text")
@@ -85,17 +92,17 @@ d3.csv("../data/data.csv").then(function(data) {
       .attr("x", 0 - (height / 2))
       .attr("dy", "1em")
       .attr("class", "axisText")
-      .text("Number of Billboard 100 Hits");
+      .text("Lacks Healthcare (%)");
 
     chartGroup.append("text")
       .attr("transform", `translate(${width / 2}, ${height + margin.top + 30})`)
       .attr("class", "axisText")
-      .text("Hair Metal Band Hair Length (inches)");
+      .text("In Poverty (%)");
   }).catch(function(error) {
     console.log(error);
 
 
           
-        })
+        });
 
-});
+
